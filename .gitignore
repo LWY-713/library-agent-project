@@ -1,0 +1,31 @@
+# 密钥与本地环境变量（含 DeepSeek / SiliconFlow API key，严禁入库）
+.env
+.env.*
+!.env.example
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 本地向量库（Milvus Lite 单文件，体积大且可重建）
+milvus_library.db
+milvus_library.db.lock
+milvus_library.db/
+
+# 评测产物（报告与日志是运行结果，不是源码；重跑即可再生）
+eval_ablation/
+evaluation/*.json
+evaluation/*.log
+evaluation/ablation/
+!evaluation/eval_questions.json
+!evaluation/questions_write.json
+
+# IDE
+.idea/
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db

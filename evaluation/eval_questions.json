@@ -1,0 +1,456 @@
+{
+  "description": "图书馆 RAG Agent 评测集 v2.0。level: L1 单跳事实（一个片段即可回答）/ L2 同义或别名（问法与文档用词不同）/ L3 条件规则或版本冲突（分身份读表、按日期判新旧）/ L4 多跳聚合（跨片段求和）/ L5 库外拒答 / L0 不该调工具。keywords 用于检索指标（任一命中即算该题检索命中，仅对 expect_tool_call=true 的知识题统计）；answer_points 用于 LLM-as-judge 判分；expect_no_info=true 期望模型明确回答知识库未收录且不编造；expect_tool_call=false 是闲聊/常识/实时信息等不该调工具的题，用于统计工具选择准确率。",
+  "version": "2.0",
+  "questions": [
+    {
+      "id": "hours_weekday",
+      "level": "L3",
+      "category": "开放时间/新旧冲突",
+      "question": "图书馆工作日现在几点开门、几点关门？",
+      "keywords": ["8:00", "21:00"],
+      "answer_points": ["工作日开放时间为 8:00-21:00", "依据 2026-09-01 发布的条目，而不是 2023/2024 的更早时间"]
+    },
+    {
+      "id": "hours_weekend",
+      "level": "L3",
+      "category": "开放时间/新旧冲突",
+      "question": "周末图书馆几点开门、几点关门？",
+      "keywords": ["9:00", "18:00"],
+      "answer_points": ["周末开放时间为 9:00-18:00", "依据 2026-09-01 发布的条目，不是更早的 20:00 或 18:30"]
+    },
+    {
+      "id": "hours_exam_week",
+      "level": "L1",
+      "category": "开放时间",
+      "question": "期末考试周图书馆晚上会延长开放到几点？",
+      "keywords": ["22:30"],
+      "answer_points": ["期末考试周（12月下旬到次年1月初）夜间延长开放到 22:30"]
+    },
+    {
+      "id": "hours_spring_festival",
+      "level": "L1",
+      "category": "开放时间",
+      "question": "春节期间图书馆还开门吗？",
+      "keywords": ["闭馆", "14"],
+      "answer_points": ["春节期间闭馆，闭馆时长一般为 14 天左右"]
+    },
+    {
+      "id": "book_ml_location",
+      "level": "L2",
+      "category": "馆藏图书/别名",
+      "question": "西瓜书放在哪个书架？",
+      "keywords": ["四楼", "408"],
+      "answer_points": ["西瓜书即周志华《机器学习》，位于四楼 408 号书架 C 区"]
+    },
+    {
+      "id": "book_dl_location",
+      "level": "L2",
+      "category": "馆藏图书/别名",
+      "question": "花书在图书馆哪个位置？",
+      "keywords": ["四楼", "408"],
+      "answer_points": ["花书即 Ian Goodfellow《深度学习》，位于四楼 408 号书架 C 区", "馆藏 4 本"]
+    },
+    {
+      "id": "book_python_location",
+      "level": "L1",
+      "category": "馆藏图书",
+      "question": "《Python编程：从入门到实践》在哪个书架？",
+      "keywords": ["二楼", "205"],
+      "answer_points": ["位于二楼 205 号书架 B 区", "馆藏 7 本"]
+    },
+    {
+      "id": "book_db_location",
+      "level": "L1",
+      "category": "馆藏图书",
+      "question": "《数据库系统概论》放在哪一层哪个书架？",
+      "keywords": ["三楼", "304"],
+      "answer_points": ["位于三楼 304 号书架 A 区"]
+    },
+    {
+      "id": "book_ds_location",
+      "level": "L1",
+      "category": "馆藏图书/同架混淆",
+      "question": "《数据科学导论》在哪个书架？",
+      "keywords": ["三楼", "302"],
+      "answer_points": ["位于三楼 302 号书架 A 区"]
+    },
+    {
+      "id": "book_bigdata_location",
+      "level": "L1",
+      "category": "馆藏图书/同架混淆",
+      "question": "《大数据技术原理与应用》在哪个书架？",
+      "keywords": ["三楼", "302"],
+      "answer_points": ["位于三楼 302 号书架 A 区"]
+    },
+    {
+      "id": "book_dm_location",
+      "level": "L1",
+      "category": "馆藏图书/同架混淆",
+      "question": "《数据挖掘导论》放在几楼哪个书架？",
+      "keywords": ["三楼", "302"],
+      "answer_points": ["位于三楼 302 号书架 A 区", "馆藏 5 本"]
+    },
+    {
+      "id": "book_ml_count",
+      "level": "L1",
+      "category": "馆藏图书",
+      "question": "周志华《机器学习》这本书馆藏一共有几本？",
+      "keywords": ["6"],
+      "answer_points": ["馆藏 6 本", "该书热门，借阅经常需要预约排队"]
+    },
+    {
+      "id": "book_ds_count",
+      "level": "L1",
+      "category": "馆藏图书",
+      "question": "《数据科学导论》馆藏有几本？",
+      "keywords": ["12"],
+      "answer_points": ["一共 12 本", "2026 年上半年追加采购了 5 本副本"]
+    },
+    {
+      "id": "borrow_limit",
+      "level": "L3",
+      "category": "借阅规则/分角色",
+      "question": "本科生一次最多可以借几本书？",
+      "keywords": ["本科生", "6"],
+      "answer_points": ["本科生最大借阅量为 6 本", "研究生和教师的额度不同，不应套用"]
+    },
+    {
+      "id": "borrow_days",
+      "level": "L3",
+      "category": "借阅规则/分角色",
+      "question": "本科生借书能借多少天？可以续借吗？",
+      "keywords": ["本科生", "30"],
+      "answer_points": ["本科生借阅期限 30 天", "可以续借 1 次，续借后再增加 30 天"]
+    },
+    {
+      "id": "overdue_fine",
+      "level": "L3",
+      "category": "借阅规则/分角色",
+      "question": "本科生借书逾期罚款怎么算？",
+      "keywords": ["本科生", "0.1"],
+      "answer_points": ["本科生每本每天 0.1 元", "单本罚款上限 10 元"]
+    },
+    {
+      "id": "borrow_graduate_limit",
+      "level": "L3",
+      "category": "借阅规则/分角色",
+      "question": "研究生一次最多可以借几本书？借期多少天？",
+      "keywords": ["研究生", "10"],
+      "answer_points": ["研究生一次最多借 10 本", "借阅期限 60 天"]
+    },
+    {
+      "id": "borrow_teacher_fine",
+      "level": "L3",
+      "category": "借阅规则/分角色",
+      "question": "教师借书逾期按什么标准罚款？上限是多少？",
+      "keywords": ["教师", "0.05"],
+      "answer_points": ["教师逾期罚款为每天每本 0.05 元", "单本上限 50 元"]
+    },
+    {
+      "id": "lost_book_compensation",
+      "level": "L1",
+      "category": "借阅规则",
+      "question": "把图书馆的书弄丢了要怎么赔？",
+      "keywords": ["赔偿", "2"],
+      "answer_points": ["优先购买同一版本新书归还", "买不到原书时按图书定价的 2-5 倍赔偿"]
+    },
+    {
+      "id": "room_max_duration",
+      "level": "L1",
+      "category": "研讨室",
+      "question": "研讨室一次最长可以预约使用多久？",
+      "keywords": ["3"],
+      "answer_points": ["一次最长使用 3 小时"]
+    },
+    {
+      "id": "room_extension",
+      "level": "L1",
+      "category": "研讨室",
+      "question": "研讨室时间不够用可以续吗？最多续多久？",
+      "keywords": ["续时", "2"],
+      "answer_points": ["后续时间段没人预约时可以申请续时", "单次续时最多加 2 小时"]
+    },
+    {
+      "id": "room_late_penalty",
+      "level": "L1",
+      "category": "研讨室",
+      "question": "预约了研讨室但迟到了会怎么样？",
+      "keywords": ["30", "取消", "违约"],
+      "answer_points": ["迟到超过 30 分钟未到场，系统自动取消预约", "账号记一次违约"]
+    },
+    {
+      "id": "room_violation_limit",
+      "level": "L1",
+      "category": "研讨室",
+      "question": "研讨室违约累计几次会被限制预约？",
+      "keywords": ["3", "30"],
+      "answer_points": ["累计 3 次违约后，30 天内无法再预约研讨室"]
+    },
+    {
+      "id": "wifi_name_password",
+      "level": "L1",
+      "category": "基础设施",
+      "question": "图书馆的 WiFi 叫什么名字？密码是什么？",
+      "keywords": ["Library", "身份证后六位"],
+      "answer_points": ["WiFi 名称 Library-Student", "用校园学号登录，密码默认身份证后六位"]
+    },
+    {
+      "id": "wifi_reset",
+      "level": "L1",
+      "category": "基础设施",
+      "question": "图书馆 WiFi 连不上怎么办？",
+      "keywords": ["服务台", "重置"],
+      "answer_points": ["去一楼服务台找工作人员重置 WiFi 密码"]
+    },
+    {
+      "id": "building_basic",
+      "level": "L1",
+      "category": "基础概况",
+      "question": "图书馆是哪一年建成的？建筑面积多大？",
+      "keywords": ["2018", "12800"],
+      "answer_points": ["2018 年建成", "总建筑面积约 12800 平方米"]
+    },
+    {
+      "id": "building_floors",
+      "level": "L1",
+      "category": "基础概况",
+      "question": "图书馆一共几层？地下一层是做什么的？",
+      "keywords": ["4", "机房"],
+      "answer_points": ["地上 4 层", "地下一层是设备机房与物资储藏室，不对学生开放"]
+    },
+    {
+      "id": "app_functions",
+      "level": "L1",
+      "category": "服务",
+      "question": "图书馆小程序都有哪些功能？",
+      "keywords": ["检索", "续借", "预约", "失物"],
+      "answer_points": ["图书检索、借阅记录查询、续借、研讨室预约、失物招领查看、投诉反馈"]
+    },
+    {
+      "id": "freshman_lecture",
+      "level": "L1",
+      "category": "服务",
+      "question": "新生入馆教育讲座一般几点开始？在哪举办？",
+      "keywords": ["下午两点", "报告厅"],
+      "answer_points": ["一般安排在下午两点", "地点大多在一楼多功能报告厅", "讲座结束后才能激活借阅权限"]
+    },
+    {
+      "id": "lost_and_found",
+      "level": "L1",
+      "category": "失物招领",
+      "question": "我在图书馆捡到一把雨伞，应该放到哪里？",
+      "keywords": ["失物招领"],
+      "answer_points": ["可参考馆内做法：捡到的失物放在一楼失物招领柜/服务台", "也可通过小程序失物招领查看"]
+    },
+    {
+      "id": "purchase_suggestion",
+      "level": "L1",
+      "category": "服务",
+      "question": "我想推荐图书馆采购一本没有的书，怎么办？",
+      "keywords": ["采购推荐"],
+      "answer_points": ["提交图书采购推荐表单，图书馆定期收集并评估是否采购"]
+    },
+    {
+      "id": "food_rule",
+      "level": "L1",
+      "category": "规章制度",
+      "question": "可以带气味比较重的食物进阅览区吗？",
+      "keywords": ["禁止", "气味"],
+      "answer_points": ["气味浓烈的食物禁止带入阅览区域", "违者管理员有权劝导"]
+    },
+    {
+      "id": "vending_machine",
+      "level": "L1",
+      "category": "基础设施",
+      "question": "图书馆里面有卖水的地方吗？",
+      "keywords": ["自动贩卖机"],
+      "answer_points": ["大厅两侧设有自动贩卖机，可买矿泉水、饮料、面包零食"]
+    },
+    {
+      "id": "book_not_on_shelf",
+      "level": "L1",
+      "category": "服务",
+      "question": "书架上找不到我想借的书怎么办？",
+      "keywords": ["小程序", "状态"],
+      "answer_points": ["先在小程序查询图书状态（可借阅/已借出/预约中/维修中/在编待上架）"]
+    },
+    {
+      "id": "book_under_repair",
+      "level": "L1",
+      "category": "服务",
+      "question": "图书状态显示维修中是什么意思？",
+      "keywords": ["破损", "修复"],
+      "answer_points": ["一般是书页破损，修复完成后重新上架开放借阅"]
+    },
+    {
+      "id": "shelf_302_total",
+      "level": "L4",
+      "category": "馆藏图书/多跳聚合",
+      "question": "三楼 302 号书架 A 区一共馆藏多少本书？",
+      "keywords": ["一共12本", "8本", "5本"],
+      "answer_points": ["《数据科学导论》12 本、《大数据技术原理与应用》8 本、《数据挖掘导论》5 本，合计 25 本"]
+    },
+    {
+      "id": "shelf_408_total",
+      "level": "L4",
+      "category": "馆藏图书/多跳聚合",
+      "question": "四楼 408 号书架 C 区一共收藏了多少本图书？",
+      "keywords": ["6本", "4本"],
+      "answer_points": ["《机器学习》6 本、《深度学习》4 本，合计 10 本"]
+    },
+    {
+      "id": "book_by_topic_hadoop",
+      "level": "L2",
+      "category": "馆藏图书/内容特征指代",
+      "question": "有本书专门讲 Hadoop、Spark 那些分布式计算的，放在几楼哪个书架？",
+      "keywords": ["Hadoop", "302"],
+      "answer_points": ["指《大数据技术原理与应用》", "位于三楼 302 号书架 A 区"]
+    },
+    {
+      "id": "book_by_topic_sql",
+      "level": "L2",
+      "category": "馆藏图书/内容特征指代",
+      "question": "想找一本讲 SQL、数据库范式和事务的教材，在哪个书架？",
+      "keywords": ["SQL", "304"],
+      "answer_points": ["指《数据库系统概论》", "位于三楼 304 号书架 A 区"]
+    },
+    {
+      "id": "book_by_audience_python",
+      "level": "L2",
+      "category": "馆藏图书/受众特征指代",
+      "question": "给零基础大一新生自学编程用的那本 Python 书在哪？",
+      "keywords": ["零基础", "205"],
+      "answer_points": ["指《Python编程：从入门到实践》", "位于二楼 205 号书架 B 区"]
+    },
+    {
+      "id": "book_by_feature_gan",
+      "level": "L2",
+      "category": "馆藏图书/内容特征指代",
+      "question": "Goodfellow 写的那本很厚、讲生成对抗网络的书放在哪个书架？",
+      "keywords": ["生成对抗网络", "408"],
+      "answer_points": ["指《深度学习》（Ian Goodfellow）", "位于四楼 408 号书架 C 区", "馆藏 4 本"]
+    },
+    {
+      "id": "books_ai_total",
+      "level": "L4",
+      "category": "馆藏图书/多跳聚合",
+      "question": "机器学习教材和深度学习教材这两本 AI 书加起来一共馆藏多少本？",
+      "keywords": ["6本", "4本"],
+      "answer_points": ["《机器学习》6 本", "《深度学习》4 本", "合计 10 本"]
+    },
+    {
+      "id": "books_db_bigdata_total",
+      "level": "L4",
+      "category": "馆藏图书/多跳聚合",
+      "question": "《数据库系统概论》和《大数据技术原理与应用》两本书一共馆藏多少本？",
+      "keywords": ["9本", "8本"],
+      "answer_points": ["《数据库系统概论》9 本", "《大数据技术原理与应用》8 本", "合计 17 本"]
+    },
+    {
+      "id": "books_cross_floor_total",
+      "level": "L4",
+      "category": "馆藏图书/多跳聚合",
+      "question": "二楼 205 书架的 Python 书和四楼 408 书架的机器学习书一共多少本？",
+      "keywords": ["7本", "6本"],
+      "answer_points": ["《Python编程：从入门到实践》7 本", "《机器学习》6 本", "合计 13 本"]
+    },
+    {
+      "id": "borrow_quota_diff",
+      "level": "L4",
+      "category": "借阅规则/多跳聚合",
+      "question": "研究生和教师相比，一次最多借阅量相差多少本？",
+      "keywords": ["10", "20"],
+      "answer_points": ["研究生一次最多借 10 本", "教师一次最多借 20 本", "相差 10 本"]
+    },
+    {
+      "id": "no_swimming_pool",
+      "level": "L5",
+      "category": "拒答测试",
+      "question": "图书馆里有游泳池吗？",
+      "keywords": [],
+      "expect_no_info": true,
+      "answer_points": ["应明确说明知识库未收录相关信息，不得编造"]
+    },
+    {
+      "id": "no_hongloumeng",
+      "level": "L5",
+      "category": "拒答测试",
+      "question": "《红楼梦》这本书在几楼的书架？",
+      "keywords": [],
+      "expect_no_info": true,
+      "answer_points": ["知识库馆藏清单中没有《红楼梦》，应如实说明未收录，不得编造位置"]
+    },
+    {
+      "id": "no_tool_weather",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "今天北京天气怎么样？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["说明自己无法提供实时天气信息，建议查询天气应用或网站", "不得编造具体温度或天气状况"]
+    },
+    {
+      "id": "no_tool_math",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "帮我算一下 128 乘以 7 等于多少？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["给出正确结果 896", "直接计算即可，不需要检索图书馆知识库"]
+    },
+    {
+      "id": "no_tool_greeting",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "你好呀，今天过得怎么样？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["友好回应寒暄", "不调用工具，不编造图书馆信息"]
+    },
+    {
+      "id": "no_tool_capital",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "中国首都是哪里？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["回答北京", "这是常识问题，不需要检索图书馆知识库"]
+    },
+    {
+      "id": "no_tool_translate",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "把「图书馆」翻译成英文是什么？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["回答 library", "这是翻译问题，不需要检索图书馆知识库"]
+    },
+    {
+      "id": "no_tool_joke",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "给我讲个简短的笑话吧。",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["讲一个简短笑话", "不调用工具"]
+    },
+    {
+      "id": "no_tool_identity",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "你是谁？能帮我做什么？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["说明自己是图书馆智能助手，可以解答图书馆相关问题", "不调用工具，不编造具体馆藏事实", "可说明支持办理借书/续借/还书（写操作需用户确认），这属于现有能力而非编造"]
+    },
+    {
+      "id": "no_tool_news",
+      "level": "L0",
+      "category": "不该调工具",
+      "question": "今天有什么突发新闻吗？",
+      "keywords": [],
+      "expect_tool_call": false,
+      "answer_points": ["说明无法提供实时新闻，建议查看新闻网站", "不得编造具体新闻事件"]
+    }
+  ]
+}
