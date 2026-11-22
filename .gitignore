@@ -14,6 +14,9 @@ milvus_library.db
 milvus_library.db.lock
 milvus_library.db/
 
+# 设备事件日志（运行时追加，不是源码）
+data/events.jsonl
+
 # 评测产物（报告与日志是运行结果，不是源码；重跑即可再生）
 eval_ablation/
 evaluation/*.json
@@ -21,6 +24,8 @@ evaluation/*.log
 evaluation/ablation/
 !evaluation/eval_questions.json
 !evaluation/questions_write.json
+# v6 报告作为 README 里 96.36% 的原始证据入库，可逐题核对
+!evaluation/report_v6.json
 
 # IDE
 .idea/
@@ -29,3 +34,10 @@ evaluation/ablation/
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# pytest 临时目录（避免临时产物混进提交）
+.pytest_cache/
+.pytest_tmp/
+.tmp_tr_*/
+.fresh_*/
+.ftmp_*/
