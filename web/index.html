@@ -13,6 +13,7 @@
     --muted: #6b7280;
     --accent: #2563eb;
     --accent-soft: #eef4ff;
+    --accent-line: #bfdbfe;
     --warn: #b45309;
     --warn-soft: #fff7ed;
   }
@@ -30,10 +31,21 @@
   }
   header {
     padding: 14px 20px; border-bottom: 1px solid var(--line);
-    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
   header h1 { font-size: 16px; margin: 0; font-weight: 600; }
-  header span { color: var(--muted); font-size: 12.5px; }
+  header .tag { color: var(--muted); font-size: 12.5px; }
+  #who {
+    margin-left: auto; font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px;
+    white-space: nowrap;
+  }
+  #who.on { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+  #switch {
+    border: none; background: none; color: var(--muted); font-size: 12.5px;
+    padding: 2px 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+  }
+  #switch:hover { color: var(--text); }
   #log { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
   .row { display: flex; }
   .row.user { justify-content: flex-end; }
@@ -54,6 +66,15 @@
     border: 1px dashed #fdba74; border-radius: 8px; padding: 8px 10px;
     margin-bottom: 10px; word-break: break-all; white-space: pre-wrap;
   }
+  .identify { background: var(--accent-soft); border-color: var(--accent-line); }
+  .identify .ask { color: var(--accent); }
+  .identify .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .identify input {
+    display: block; width: 100%; font: inherit; padding: 8px 10px; margin-bottom: 10px;
+    border: 1px solid var(--accent-line); border-radius: 8px; background: #fff;
+    color: var(--text); outline: none;
+  }
+  .identify input:focus { border-color: var(--accent); }
   .confirm .actions { display: flex; gap: 8px; }
   button {
     font: inherit; cursor: pointer; border-radius: 8px; padding: 6px 14px;
@@ -71,17 +92,47 @@
   #q:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .hint { padding: 0 20px 14px; color: var(--muted); font-size: 12.5px; }
   .hint b { font-weight: 600; color: var(--text); }
+  .station { border-top: 1px solid var(--line); padding: 8px 16px 0; }
+  .st-toggle {
+    font-size: 12.5px; color: var(--muted); background: none; border: 1px dashed var(--line);
+    border-radius: 8px; padding: 4px 10px; cursor: pointer; width: 100%; text-align: left;
+  }
+  .st-toggle:hover { color: var(--text); border-color: #c9ced6; }
+  .st-body { padding: 10px 2px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .st-group { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fafbfc; }
+  .st-title { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  .st-item { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 0; }
+  .st-item .copy { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); }
+  .st-item button { padding: 2px 10px; font-size: 12.5px; margin-left: auto; }
+  .st-empty { font-size: 12.5px; color: var(--muted); }
+  .st-tip { font-size: 12px; color: var(--muted); line-height: 1.5; }
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <h1>📚 图书馆智能 Agent</h1>
-    <span>LangGraph · DeepSeek · Milvus Lite</span>
+    <span class="tag">LangGraph · DeepSeek · Milvus Lite</span>
+    <span id="who">未识别用户</span>
+    <button id="switch">切换用户</button>
   </header>
   <div id="log"></div>
+  <div class="station">
+    <button class="st-toggle" id="stToggle">自助设备（模拟）：借书机 / 还书机 · 点击展开</button>
+    <div class="st-body" id="stBody" hidden>
+      <div class="st-group">
+        <div class="st-title">借书机 · 待取书（扫册条码完成借出）</div>
+        <div id="stReserved"></div>
+      </div>
+      <div class="st-group">
+        <div class="st-title">还书机 · 待归还（扫册条码完成销账）</div>
+        <div id="stPending"></div>
+      </div>
+      <div class="st-tip">现实里这两步由机器扫码完成，Agent 无权代劳，只能预借和登记。</div>
+    </div>
+  </div>
   <div class="hint">
-    可以先试：<b>图书馆几点关门</b> · <b>帮我续借机器学习</b>（写操作会弹确认）· <b>馆长是谁</b>（应拒答）
+    可以先试：<b>图书馆几点关门</b>（不需要学号）· <b>我借了几本</b>（会要求输入学号）· <b>帮我借机器学习</b>（预借后到「自助设备」取书）
   </div>
   <footer>
     <input id="q" placeholder="问点什么…" autocomplete="off" />
@@ -92,8 +143,22 @@
   const log = document.getElementById('log');
   const input = document.getElementById('q');
   const sendBtn = document.getElementById('send');
-  const sessionId = 'web-' + Math.random().toString(36).slice(2, 10);
+  const whoNode = document.getElementById('who');
+
+  let sessionId = 'web-' + Math.random().toString(36).slice(2, 10);
+  let currentUser = localStorage.getItem('lib_user') || '';
   let busy = false;
+  // 图停在 interrupt（等学号 / 等确认）时锁住输入框：
+  // 这段时间再发消息会被后端拒绝——图不能在悬空 tool_calls 之后接新的 human 消息
+  let awaiting = false;
+
+  function setAwaiting(on, hint) {
+    awaiting = on;
+    input.disabled = on;
+    sendBtn.disabled = on || busy;
+    input.placeholder = on ? (hint || '请先处理上面的卡片…') : '问点什么…';
+    if (!on) input.focus();
+  }
 
   function el(tag, cls, text) {
     const node = document.createElement(tag);
@@ -101,6 +166,12 @@
     if (text !== undefined) node.textContent = text;
     return node;
   }
+
+  function updateWho() {
+    whoNode.textContent = currentUser ? '当前：' + currentUser : '未识别用户';
+    whoNode.classList.toggle('on', !!currentUser);
+  }
+  updateWho();
 
   function addUser(text) {
     const row = el('div', 'row user');
@@ -134,10 +205,82 @@
     const done = (approved) => {
       yes.disabled = no.disabled = true;
       addUser(approved ? '确认执行' : '取消');
+      setAwaiting(false);
       resolvePending(approved);
     };
     yes.onclick = () => done(true);
     no.onclick = () => done(false);
+    setAwaiting(true, '点「确认执行」或「取消」…');
+  }
+
+  function addIdentify(data) {
+    // 本地记住过学号（比如刷新了页面但会话状态丢了）：静默重绑，不打断对话
+    if (currentUser) {
+      identifyWith(currentUser);
+      return;
+    }
+
+    const row = el('div', 'row bot');
+    const card = el('div', 'confirm identify');
+    card.appendChild(el('div', 'ask', data.ask || '请先输入你的学号'));
+    if (data.detail) card.appendChild(el('div', 'sub', data.detail));
+
+    const box = el('input');
+    box.placeholder = '学号，例如 2023001';
+    box.autocomplete = 'off';
+    card.appendChild(box);
+
+    const actions = el('div', 'actions');
+    const ok = el('button', 'primary', '确认身份');
+    actions.appendChild(ok);
+    card.appendChild(actions);
+
+    row.appendChild(card);
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+    box.focus();
+
+    const submit = () => {
+      const value = box.value.trim();
+      if (!/^[0-9A-Za-z]{4,20}$/.test(value)) {
+        box.style.borderColor = '#dc2626';
+        box.placeholder = '学号应为 4-20 位数字或字母';
+        return;
+      }
+      ok.disabled = box.disabled = true;
+      addUser('学号 ' + value);
+      row.remove();
+      setAwaiting(false);
+      identifyWith(value);
+    };
+    ok.onclick = submit;
+    box.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') { ev.preventDefault(); submit(); }
+    });
+    setAwaiting(true, '先填学号，回车即可…');
+  }
+
+  async function identifyWith(userId) {
+    if (busy) return;
+    busy = true;
+    const bubble = addBot('正在识别身份…');
+    bubble.classList.add('pending');
+    try {
+      const res = await post('/api/identify', { session_id: sessionId, user_id: userId });
+      if (res.status !== 'error') {
+        currentUser = res.user_id || userId;
+        localStorage.setItem('lib_user', currentUser);
+        updateWho();
+      }
+      render(res, bubble);
+    } catch (err) {
+      bubble.classList.remove('pending');
+      bubble.textContent = '请求失败：' + err.message;
+    } finally {
+      busy = false;
+      sendBtn.disabled = awaiting;
+      if (!awaiting) input.focus();
+    }
   }
 
   async function resolvePending(approved) {
@@ -153,11 +296,25 @@
       bubble.textContent = '请求失败：' + err.message;
     } finally {
       busy = false;
-      input.focus();
+      sendBtn.disabled = awaiting;
+      if (!awaiting) input.focus();
     }
   }
 
   function render(data, bubble) {
+    // 后端一旦确认了身份，前端同步过来（命令行/刷新等场景也能对齐）
+    if (data.user_id && data.user_id !== currentUser) {
+      currentUser = data.user_id;
+      localStorage.setItem('lib_user', currentUser);
+      updateWho();
+    }
+    if (!stBody.hidden) refreshStation();
+
+    if (data.status === 'identify') {
+      bubble.closest('.row').remove();
+      addIdentify(data);
+      return;
+    }
     if (data.status === 'confirm') {
       bubble.closest('.row').remove();
       addConfirm(data);
@@ -179,7 +336,7 @@
 
   async function ask() {
     const text = input.value.trim();
-    if (!text || busy) return;
+    if (!text || busy || awaiting) return;
     input.value = '';
     addUser(text);
     busy = true;
@@ -193,10 +350,102 @@
       bubble.textContent = '请求失败：' + err.message;
     } finally {
       busy = false;
-      sendBtn.disabled = false;
-      input.focus();
+      sendBtn.disabled = awaiting;
+      if (!awaiting) input.focus();
     }
   }
+
+  const stToggle = document.getElementById('stToggle');
+  const stBody = document.getElementById('stBody');
+  const stReserved = document.getElementById('stReserved');
+  const stPending = document.getElementById('stPending');
+
+  function stLine(label, copy, actionText, onScan) {
+    const row = el('div', 'st-item');
+    row.appendChild(el('span', '', label));
+    row.appendChild(el('span', 'copy', copy));
+    const btn = el('button', '', actionText);
+    btn.onclick = onScan;
+    row.appendChild(btn);
+    return row;
+  }
+
+  function stFill(box, items, kind, actionText, labelOf, emptyText) {
+    box.innerHTML = '';
+    if (!items.length) {
+      box.appendChild(el('div', 'st-empty', emptyText));
+      return;
+    }
+    items.forEach((item) => {
+      box.appendChild(stLine(labelOf(item), item.copy, actionText, () => scan(kind, item.copy)));
+    });
+  }
+
+  async function refreshStation() {
+    if (!currentUser) {
+      stReserved.innerHTML = '';
+      stPending.innerHTML = '';
+      const tip = el('div', 'st-empty', '先让 Agent 识别学号，面板才会列出待取/待还的书。');
+      stReserved.appendChild(tip);
+      return;
+    }
+    try {
+      const res = await fetch('/api/station/pending?user_id=' + encodeURIComponent(currentUser));
+      const data = await res.json();
+      if (!data.ok) return;
+      stFill(stReserved, data.reserved, 'borrow', '扫码取书',
+        (it) => it.book + '（取书期限 ' + it.pickup_deadline + '）',
+        '没有待取的书。先跟 Agent 说「帮我借某本书」。');
+      stFill(stPending, data.pending_return, 'return', '扫码还书',
+        (it) => it.book + (it.overdue_days > 0 ? '（逾期 ' + it.overdue_days + ' 天）' : ''),
+        '没有待归还的书。先跟 Agent 说「我要还某本书」。');
+    } catch (err) {
+      stPending.innerHTML = '';
+      stPending.appendChild(el('div', 'st-empty', '读取失败：' + err.message));
+    }
+  }
+
+  async function scan(kind, copy) {
+    if (!copy || busy) return;
+    busy = true;
+    try {
+      const res = await post('/api/station/' + kind, { barcode: copy });
+      let text;
+      if (res.ok) {
+        text = kind === 'borrow'
+          ? '【借书机】' + res.data.book + '（' + res.data.copy + '）已借出，应还 ' + res.data.due_date
+          : '【还书机】' + res.data.book + '（' + res.data.copy + '）已归还，逾期 ' +
+            res.data.overdue_days + ' 天，罚款 ' + res.data.fine + ' 元';
+      } else {
+        text = '【设备】' + (res.msg || res.code);
+      }
+      addBot(text);
+      await refreshStation();
+    } catch (err) {
+      addBot('【设备】请求失败：' + err.message);
+    } finally {
+      busy = false;
+      sendBtn.disabled = awaiting;
+      if (!awaiting) input.focus();
+    }
+  }
+
+  stToggle.onclick = async () => {
+    stBody.hidden = !stBody.hidden;
+    if (!stBody.hidden) await refreshStation();
+  };
+
+  document.getElementById('switch').onclick = () => {
+    currentUser = '';
+    localStorage.removeItem('lib_user');
+    sessionId = 'web-' + Math.random().toString(36).slice(2, 10);
+    log.innerHTML = '';
+    setAwaiting(false);          // 新会话没有挂起，解锁输入框
+    updateWho();
+    refreshStation();
+    addBot('已切换用户并开启新会话。再问个人业务时会重新要求输入学号。');
+    input.focus();
+  };
 
   sendBtn.onclick = ask;
   input.addEventListener('keydown', (ev) => {
