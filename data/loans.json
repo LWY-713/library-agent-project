@@ -2,8 +2,8 @@
   "《机器学习》": {
     "user": "2023001",
     "borrow_date": "2026-11-01",
-    "due_date": "2026-12-01",
-    "renewed": false,
+    "due_date": "2026-12-31",
+    "renewed": true,
     "returned": false
   },
   "《数据库系统概论》": {
@@ -18,6 +18,6 @@
     "borrow_date": "2026-10-05",
     "due_date": "2026-11-11",
     "renewed": false,
-    "returned": false
+    "returned": true
   }
 }

@@ -37,6 +37,15 @@ class EmbeddingNotConfigured(RuntimeError):
 
 
 # ---------------------------------------------------------------- 客户端
+# pymilvus 默认给 gRPC 设了 keepalive_time_ms=10000 + permit_without_calls=True：
+# 空闲时每 10 秒 ping 一次，而 milvus-lite 服务端有最小 ping 间隔限制，会回
+# GOAWAY "too_many_pings" 把连接掐掉再重连。功能不受影响，但控制台会刷
+# E1122 chttp2_transport 报错。这里关掉无请求时的 ping、把间隔放到 5 分钟。
+GRPC_OPTIONS = {
+    "grpc.keepalive_time_ms": 300000,
+    "grpc.keepalive_permit_without_calls": False,
+}
+
 _client: MilvusClient | None = None
 
 
@@ -44,7 +53,7 @@ def get_client() -> MilvusClient:
     """懒加载 Milvus 客户端，避免 import 阶段就连库。"""
     global _client
     if _client is None:
-        _client = MilvusClient(MILVUS_URI)
+        _client = MilvusClient(MILVUS_URI, grpc_options=GRPC_OPTIONS)
     return _client
 
 

@@ -23,11 +23,15 @@
 ```
 library_agent/
 ├── main.py            # 入口：命令行对话
+├── api.py             # 入口：HTTP 服务（Web demo）
+├── web/index.html     # 单页前端（含写操作确认卡片）
 ├── agent_builder.py   # 组装 Agent（DeepSeek + 工具）
 ├── tools.py           # library_search_tool 检索 + borrow_manage_tool 借还（写操作）
 ├── rag_module.py      # 切分 / 向量化 / 入库 / 检索
 ├── middleware.py      # 输入校验 + 调用耗时日志
 ├── config.py          # 集中配置（读 .env）
+├── tests/             # pytest：工具规则 / 输入校验 / HTTP 冒烟
+├── .github/workflows/ci.yml  # push 时自动跑测试
 ├── evaluation/
 │   ├── eval_questions.json  # 55 题：47 道知识/拒答 + 8 道“不该调工具”，含 L0-L5 难度标签
 │   ├── evaluate.py          # 检索 / 回答 / 工具选择 / 轨迹 / token + 分层准确率
@@ -214,6 +218,34 @@ v6 新增的 4 道 L4 聚合题（`books_ai_total` / `books_db_bigdata_total` /
 `loans.json` 除两条题设记录外，还种了《深度学习》一条逾期记录，用来让第三条命令
 真的走到罚款计算；测试后文件会还原到初始状态。
 
+### Web 界面（可选）
+
+命令行之外还包了一层 HTTP 服务，方便现场演示：
+
+```bash
+uvicorn api:app --port 8000        # 必须单 worker：MemorySaver 是进程内检查点
+```
+
+打开 <http://127.0.0.1:8000> 即可对话。涉及借还书的写操作会在页面里弹出确认卡片，
+点「确认执行」才真正落库；取消则写入 `USER_REJECTED` 让 agent 自己说明。接口三个：
+`POST /api/chat`、`POST /api/confirm`、`GET /api/health`。
+
+> 公网部署前先想清楚：这个服务直接消耗你的 DeepSeek / embedding 额度。求职演示更推荐
+> 本地跑 + 录一段 30 秒 GIF 放进 README；真要公网访问，至少加一层口令或限流。
+
+## 评测口径与可信度（面试常被追问）
+
+- **检索指标**：`keywords` 命中即算 hit，统计 Recall@K 与 MRR；`expect_tool_call=false`
+  的闲聊/实时题不参与检索统计，否则会凭空拉低召回。
+- **回答准确率**：LLM-as-judge。把【标准要点】和【AI 回答】一起交给裁判模型判
+  `pass/fail`，裁判温度调低；**不是人工逐题标注**，这是最容易被追问的一点。
+- **样本量**：55 题。按 Wilson 95% 区间估算，96.36%（53/55）的真实区间约
+  **87.7%–99.0%**，也就是 ±5.8pt；L4 的 4/6 区间约 **30%–90%**。
+  因此「v3 93.6% vs v6 96.36%」这类几个点的差异**不能当结论**，能当结论的是
+  别名题 0%→100% 这种定性变化。
+- **建议的交叉验证**：随机抽 10 题人工复核裁判结论并报告一致率；或同一批题跑两遍
+  看 pass 是否稳定——现有两版同 prompt 的 L5 就出现过 100%/50% 的波动。
+
 ## 评测与消融
 
 解释器同样是 `D:\Edge_Download\Miniconda\envs\langchain1.2\python.exe`。
@@ -277,3 +309,7 @@ L0 不计入检索指标，只统计工具选择准确率。
   发布日期判断；如果仍不稳定，可以把 `TOP_K` 调大（如 5）或调小 `CHUNK_SIZE`。
 - **改完 `library_knowledge.txt` 后指标没变**：向量库还是旧的，必须先执行
   `python rag_module.py` 重建，再跑评测。
+- **控制台刷 `GOAWAY ... too_many_pings` / `E1122 chttp2_transport`**：pymilvus 默认在空闲时
+  每 10 秒发一次 gRPC keepalive ping，milvus-lite 服务端有限流，会主动断开连接再重连。
+  不影响检索结果；`rag_module.get_client()` 已把 keepalive 调到 300 秒并关闭「无请求时的
+  ping」，若仍偶发可忽略。

@@ -114,11 +114,20 @@ def borrow_manage_tool(
         return _err("NOT_BORROWED", f"你名下没有借阅中的{key}")
 
     if action == "renew":
-        if rec.get("renewed"):
-            return _err("ALREADY_RENEWED", "每本书只能续借一次，该书已经续借过")
         due = date.fromisoformat(rec["due_date"])
+        overdue_days = max(0, (date.today() - due).days)
+        # 返回里必须带上到期日与逾期天数：只给一句“已续借过”时，模型无法判断
+        # 这本书是不是已经超期，容易编出“尽快归还以免逾期”这种与事实相反的答复。
+        if rec.get("renewed"):
+            return _err(
+                "ALREADY_RENEWED", "每本书只能续借一次，该书已经续借过",
+                due_date=rec["due_date"], overdue_days=overdue_days,
+            )
         if due < date.today():
-            return _err("OVERDUE", f"该书已于 {rec['due_date']} 超期，需先归还并缴清罚款")
+            return _err(
+                "OVERDUE", f"该书已于 {rec['due_date']} 超期，需先归还并缴清罚款",
+                due_date=rec["due_date"], overdue_days=overdue_days,
+            )
         rec["renewed"] = True
         rec["due_date"] = (due + timedelta(days=30)).isoformat()
         _save_loans(loans)
