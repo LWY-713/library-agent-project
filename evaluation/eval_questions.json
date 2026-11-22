@@ -1,5 +1,5 @@
 {
-  "description": "图书馆 RAG Agent 评测集 v2.0。level: L1 单跳事实（一个片段即可回答）/ L2 同义或别名（问法与文档用词不同）/ L3 条件规则或版本冲突（分身份读表、按日期判新旧）/ L4 多跳聚合（跨片段求和）/ L5 库外拒答 / L0 不该调工具。keywords 用于检索指标（任一命中即算该题检索命中，仅对 expect_tool_call=true 的知识题统计）；answer_points 用于 LLM-as-judge 判分；expect_no_info=true 期望模型明确回答知识库未收录且不编造；expect_tool_call=false 是闲聊/常识/实时信息等不该调工具的题，用于统计工具选择准确率。",
+  "description": "图书馆智能 Agent 评测集 v2.0。level: L1 单跳事实（一个片段即可回答）/ L2 同义或别名（问法与文档用词不同）/ L3 条件规则或版本冲突（分身份读表、按日期判新旧）/ L4 多跳聚合（跨片段求和）/ L5 库外拒答 / L0 不该调工具。keywords 用于检索指标（任一命中即算该题检索命中，仅对 expect_tool_call=true 的知识题统计）；answer_points 用于 LLM-as-judge 判分；expect_no_info=true 期望模型明确回答知识库未收录且不编造；expect_tool_call=false 是闲聊/常识/实时信息等不该调工具的题，用于统计工具选择准确率。",
   "version": "2.0",
   "questions": [
     {

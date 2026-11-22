@@ -1,5 +1,5 @@
 # evaluate.py
-"""图书馆 RAG Agent 评测脚本。
+"""图书馆智能 Agent 评测脚本。
 
 四类指标：
 1. Recall@K / MRR —— 检索质量（只对知识库内的题计算）
@@ -403,7 +403,7 @@ def resolve_report_path(raw: str | None) -> Path:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="图书馆 RAG Agent 评测")
+    parser = argparse.ArgumentParser(description="图书馆智能 Agent 评测")
     parser.add_argument("--mode", choices=["retrieval", "agent", "all"], default="all")
     parser.add_argument("--top-k", type=int, default=TOP_K, help="检索评测返回片段数")
     parser.add_argument("--limit", type=int, default=None, help="只评测前 N 题（调试/消融用）")

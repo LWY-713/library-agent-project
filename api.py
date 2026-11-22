@@ -28,7 +28,7 @@ from rag_module import ensure_index
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
 
-app = FastAPI(title="图书馆智能 RAG Agent", version="1.0")
+app = FastAPI(title="图书馆智能 Agent", version="1.0")
 
 _agent = None
 
@@ -70,6 +70,17 @@ def _shape(result: dict) -> dict:
     return {"status": "ok", "answer": answer or "（没有返回内容）"}
 
 
+def _explain(exc: Exception) -> str:
+    """把初始化异常翻译成用户能看懂的一句话。"""
+    text = f"{type(exc).__name__}: {exc}"
+    if "LOCK" in text or "Permission denied" in text:
+        return (
+            "向量库被另一个进程占用。milvus-lite 是单进程独占的本地库，"
+            "通常是还开着命令行 main.py 的会话——请先关掉它，再刷新本页重试。"
+        )
+    return f"初始化失败：{text}"
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(WEB_DIR / "index.html")
@@ -86,7 +97,12 @@ def chat(req: ChatRequest) -> dict:
     if not ok:
         return {"status": "error", "answer": message}
 
-    result = get_agent().invoke(
+    try:
+        agent = get_agent()
+    except Exception as exc:  # 向量库被占用 / 未配置密钥等
+        return {"status": "error", "answer": _explain(exc)}
+
+    result = agent.invoke(
         {"messages": [{"role": "user", "content": req.message}]},
         config=_config(req.session_id),
     )
@@ -95,7 +111,12 @@ def chat(req: ChatRequest) -> dict:
 
 @app.post("/api/confirm")
 def confirm(req: ConfirmRequest) -> dict:
-    result = get_agent().invoke(
+    try:
+        agent = get_agent()
+    except Exception as exc:
+        return {"status": "error", "answer": _explain(exc)}
+
+    result = agent.invoke(
         Command(resume="yes" if req.approved else "no"),
         config=_config(req.session_id),
     )

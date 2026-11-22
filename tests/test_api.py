@@ -19,7 +19,7 @@ def test_index_serves_page():
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "图书馆智能 RAG Agent" in response.text
+    assert "图书馆智能 Agent" in response.text
 
 
 def test_blank_message_rejected_before_model_call():

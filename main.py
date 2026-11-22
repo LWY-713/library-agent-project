@@ -104,7 +104,7 @@ def print_tool_calls(messages) -> None:
 
 
 def main() -> int:
-    print("===== 📚 图书馆智能 RAG Agent =====")
+    print("===== 📚 图书馆智能 Agent =====")
 
     try:
         if ensure_index(verbose=DEBUG):

@@ -1,4 +1,4 @@
-# 📚 图书馆智能 RAG Agent
+# 📚 图书馆智能 Agent
 
 基于 **LangChain 1.2 + DeepSeek + Milvus（Milvus Lite）** 的图书馆问答 Agent。
 知识库来自 `data/library_knowledge.txt`，覆盖开放时间、馆藏图书、书架位置、研讨室、
@@ -232,6 +232,10 @@ uvicorn api:app --port 8000        # 必须单 worker：MemorySaver 是进程内
 
 > 公网部署前先想清楚：这个服务直接消耗你的 DeepSeek / embedding 额度。求职演示更推荐
 > 本地跑 + 录一段 30 秒 GIF 放进 README；真要公网访问，至少加一层口令或限流。
+>
+> **命令行和 Web 不能同时开**：milvus-lite 是单进程独占的本地库，`main.py` 还开着时
+> Web 端会报 `PermissionError: ... milvus_library.db\LOCK`。二选一，或给 Web 端单独指定
+> 一个 `MILVUS_DB_PATH`。
 
 ## 评测口径与可信度（面试常被追问）
 

@@ -160,7 +160,7 @@ def _num(value) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Library RAG Agent 参数消融")
+    parser = argparse.ArgumentParser(description="Library Agent 参数消融")
     parser.add_argument("--limit", type=int, default=None, help="每组只评测前 N 题（快速对比）")
     parser.add_argument("--mode", choices=["retrieval", "agent", "all"], default="all")
     parser.add_argument("--variants-file", default=None, help="自定义变体 JSON 文件")
