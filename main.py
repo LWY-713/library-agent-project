@@ -2,6 +2,7 @@
 """项目主入口：命令行里和图书馆 Agent 对话。"""
 from __future__ import annotations
 
+import argparse
 import sys
 
 from langchain_core.messages import AIMessageChunk
@@ -34,16 +35,31 @@ def run_agent(agent, user_input: str):
     return agent.invoke({"messages": [{"role": "user", "content": user_input}]})
 
 
-def run_with_approval(agent, user_input: str, config: dict) -> str:
-    """跑一轮对话；遇到写操作确认就停下来问用户，再恢复。"""
+def run_with_approval(agent, user_input: str, config: dict, preset_user: str = "") -> str:
+    """跑一轮对话；遇到身份认证或写操作确认就停下来问用户，再恢复。"""
     result = agent.invoke(
         {"messages": [{"role": "user", "content": user_input}]}, config=config
     )
 
     while "__interrupt__" in result:
-        payload = result["__interrupt__"][0].value
-        print(f"\n⚠️  {payload['ask']}")
-        print(f"    {payload['detail']}")
+        payload = result["__interrupt__"][0].value or {}
+
+        # 第一道门：个人业务还没识别身份
+        if payload.get("type") == "identify":
+            print(f"\n🔐 {payload.get('ask', '请先输入你的学号')}")
+            if payload.get("detail"):
+                print(f"    {payload['detail']}")
+            if preset_user:
+                user_id = preset_user
+                print(f"    使用启动参数指定的学号：{user_id}")
+            else:
+                user_id = input("    学号：").strip()
+            result = agent.invoke(Command(resume=user_id), config=config)
+            continue
+
+        # 第二道门：写操作确认
+        print(f"\n⚠️  {payload.get('ask', '是否确认执行？')}")
+        print(f"    {payload.get('detail', '')}")
         answer = input("    确认执行？(yes/no) ").strip().lower()
         if answer not in {"yes", "no"}:
             answer = "no"
@@ -104,7 +120,19 @@ def print_tool_calls(messages) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="图书馆智能 Agent（命令行版）")
+    parser.add_argument(
+        "--user", default="",
+        help="预置学号；不填则在办理个人业务时提示输入",
+    )
+    args = parser.parse_args()
+    preset_user = args.user.strip()
+
     print("===== 📚 图书馆智能 Agent =====")
+    if preset_user:
+        print(f"👤 已指定学号：{preset_user}")
+    else:
+        print("👤 办理个人业务（借 / 续 / 还 / 查我的借阅）时会提示输入学号")
 
     try:
         if ensure_index(verbose=DEBUG):
@@ -150,7 +178,7 @@ def main() -> int:
                     print("🤖 Agent：（没有返回内容）")
                 continue
 
-            answer = run_with_approval(agent, user_input, config)
+            answer = run_with_approval(agent, user_input, config, preset_user)
         except Exception as exc:
             print(f"❌ 运行出错：{exc}")
             continue

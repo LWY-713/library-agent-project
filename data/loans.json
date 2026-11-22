@@ -1,23 +1,65 @@
 {
-  "《机器学习》": {
-    "user": "2023001",
-    "borrow_date": "2026-11-01",
-    "due_date": "2026-12-31",
-    "renewed": true,
-    "returned": false
+  "2023001": {
+    "《机器学习》": {
+      "copy": "B0001",
+      "status": "borrowed",
+      "borrow_date": "2026-11-01",
+      "due_date": "2026-12-31",
+      "renewed": true,
+      "returned": false,
+      "fine_due": 0.0
+    },
+    "《数据库系统概论》": {
+      "copy": "B0002",
+      "status": "borrowed",
+      "borrow_date": "2026-10-01",
+      "due_date": "2026-11-10",
+      "renewed": true,
+      "returned": false,
+      "fine_due": 0.0
+    },
+    "《深度学习》": {
+      "copy": "B0003",
+      "status": "returned",
+      "borrow_date": "2026-10-05",
+      "due_date": "2026-11-11",
+      "renewed": false,
+      "returned": true,
+      "returned_at": "2026-11-22",
+      "fine_due": 1.1
+    },
+    "《数据科学导论》": {
+      "copy": "B0004",
+      "status": "borrowed",
+      "borrow_date": "2026-11-22",
+      "due_date": "2026-12-22",
+      "renewed": false,
+      "returned": false,
+      "fine_due": 0.0
+    }
   },
-  "《数据库系统概论》": {
-    "user": "2023001",
-    "borrow_date": "2026-10-01",
-    "due_date": "2026-11-10",
-    "renewed": true,
-    "returned": false
+  "2023002": {
+    "《数据挖掘导论》": {
+      "copy": "B0005",
+      "status": "borrowed",
+      "borrow_date": "2026-11-15",
+      "due_date": "2026-12-15",
+      "renewed": false,
+      "returned": false,
+      "fine_due": 0.0
+    }
   },
-  "《深度学习》": {
-    "user": "2023001",
-    "borrow_date": "2026-10-05",
-    "due_date": "2026-11-11",
-    "renewed": false,
-    "returned": true
+  "2024071184": {
+    "《机器学习》": {
+      "copy": "B0006",
+      "status": "reserved",
+      "reserved_at": "2026-11-22",
+      "pickup_deadline": "2026-11-25",
+      "borrow_date": null,
+      "due_date": null,
+      "renewed": false,
+      "fine_due": 0.0,
+      "returned": false
+    }
   }
 }

@@ -1,0 +1,54 @@
+{
+  "_note": "馆藏清单，字段取自 library_knowledge.txt 第三部分「馆藏图书详细信息」，改知识库时请同步本文件。total 为总册数（含已借出）。",
+  "books": [
+    {
+      "title": "数据科学导论",
+      "author": "",
+      "total": 12,
+      "location": "三楼 302 号书架 A 区",
+      "subject": "数据科学与大数据技术"
+    },
+    {
+      "title": "Python编程：从入门到实践",
+      "author": "",
+      "total": 7,
+      "location": "二楼 205 号书架 B 区",
+      "subject": "计算机科学与技术、软件工程"
+    },
+    {
+      "title": "数据库系统概论",
+      "author": "",
+      "total": 9,
+      "location": "三楼 304 号书架 A 区",
+      "subject": "计算机类各专业"
+    },
+    {
+      "title": "机器学习",
+      "author": "周志华",
+      "total": 6,
+      "location": "四楼 408 号书架 C 区",
+      "subject": "人工智能、大数据方向"
+    },
+    {
+      "title": "深度学习",
+      "author": "Ian Goodfellow",
+      "total": 4,
+      "location": "四楼 408 号书架 C 区",
+      "subject": "深度学习、AI 方向"
+    },
+    {
+      "title": "大数据技术原理与应用",
+      "author": "",
+      "total": 8,
+      "location": "三楼 302 号书架 A 区",
+      "subject": "大数据专业"
+    },
+    {
+      "title": "数据挖掘导论",
+      "author": "",
+      "total": 5,
+      "location": "三楼 302 号书架 A 区",
+      "subject": "数据科学与大数据技术、统计学"
+    }
+  ]
+}

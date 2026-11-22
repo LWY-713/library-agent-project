@@ -105,6 +105,10 @@ KNOWLEDGE_FILE = _env_path("KNOWLEDGE_FILE", BASE_DIR / "data" / "library_knowle
 # ======================= 借阅业务 =======================
 CURRENT_USER_ID = _env("CURRENT_USER_ID", "2023001")
 LOANS_FILE = _env_path("LOANS_FILE", BASE_DIR / "data" / "loans.json")
+# 馆藏清单：借书前校验书名是否存在、是否还有可借复本
+BOOKS_FILE = _env_path("BOOKS_FILE", BASE_DIR / "data" / "books.json")
+# 设备事件日志（自助借还机每次扫码追加一行 JSON）
+EVENTS_FILE = _env_path("EVENTS_FILE", BASE_DIR / "data" / "events.jsonl")
 
 # ======================= 其它 =======================
 MAX_CHAR_THRESHOLD = _env_int("MAX_CHAR_THRESHOLD", 300)

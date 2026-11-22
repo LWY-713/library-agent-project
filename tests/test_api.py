@@ -26,3 +26,12 @@ def test_blank_message_rejected_before_model_call():
     response = client.post("/api/chat", json={"session_id": "t", "message": "   "})
 
     assert response.json()["status"] == "error"
+
+
+def test_bad_user_id_rejected_before_model_call():
+    """学号格式在进图之前就被挡掉，所以这条用例不需要密钥也能跑。"""
+    response = client.post("/api/identify", json={"session_id": "t", "user_id": "ab"})
+
+    body = response.json()
+    assert body["status"] == "error"
+    assert "学号格式" in body["answer"]
