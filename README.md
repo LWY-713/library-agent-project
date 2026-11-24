@@ -1,5 +1,7 @@
 # 📚 图书馆智能 Agent
 
+[![CI](https://github.com/LWY-713/library-agent-project/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/LWY-713/library-agent-project/actions/workflows/ci.yml)
+
 基于 **LangChain 1.2 + DeepSeek + Milvus（Milvus Lite）** 的图书馆问答 Agent。
 知识库来自 `data/library_knowledge.txt`，覆盖开放时间、馆藏图书、书架位置、研讨室、
 活动、设备报修、失物招领等混合资料。文档保留多条带日期的历史通知，但**不标注**哪条
