@@ -1,6 +1,11 @@
 langchain==1.2.12
 langchain-core==1.2.18
 langgraph==1.1.2
+# langgraph 的子包必须同批锁定：langgraph-prebuilt 1.0.10 会 import
+# langgraph.runtime.ExecutionInfo，而 langgraph 1.1.2 尚未导出它，
+# 在干净环境（如 CI 的 Python 3.12）里会直接 ImportError，测试与启动全挂。
+langgraph-prebuilt==1.0.8
+langgraph-checkpoint==4.0.1
 langchain-openai==1.1.11
 langchain-deepseek==1.0.1
 langchain-text-splitters==1.1.1

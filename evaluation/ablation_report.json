@@ -1,0 +1,333 @@
+{
+  "timestamp": "2026-11-18 11:30:50",
+  "mode": "all",
+  "limit": null,
+  "variants_file": null,
+  "elapsed_seconds": 1142.9,
+  "summaries": [
+    {
+      "variant": "baseline",
+      "env": {},
+      "rebuild": false,
+      "config": {
+        "llm_model": "deepseek-chat",
+        "llm_temperature": 0.6,
+        "top_k": 3,
+        "chunk_size": 200,
+        "chunk_overlap": 80,
+        "max_tool_rounds": 12,
+        "embedding_model": "text-embedding-v4",
+        "embedding_dim": 1024,
+        "collection": "library_rag_collection",
+        "milvus_uri": "D:\\pycharm\\library_agent\\milvus_library.db"
+      },
+      "report_path": "evaluation\\ablation\\baseline\\report.json",
+      "timestamp": "2026-11-18 11:14:52",
+      "retrieval": {
+        "recall": 0.9411764705882353,
+        "mrr": 0.8970588235294118,
+        "count": 34
+      },
+      "agent": {
+        "count": 42,
+        "answer_accuracy": 0.9523809523809523,
+        "tool_selection_accuracy": 1,
+        "tool_call_rate_when_expected": 1,
+        "false_tool_call_rate": 0,
+        "avg_tool_rounds": 0.8095238095238095,
+        "avg_llm_calls": 1.8095238095238095,
+        "agent_tokens": {
+          "input_tokens": 39553,
+          "output_tokens": 5738,
+          "total_tokens": 45291,
+          "cache_read_tokens": 22144
+        },
+        "judge_tokens": {
+          "input_tokens": 16022,
+          "output_tokens": 1543,
+          "total_tokens": 17565
+        }
+      },
+      "delta_vs_baseline": {}
+    },
+    {
+      "variant": "topk_1",
+      "env": {
+        "TOP_K": "1"
+      },
+      "rebuild": false,
+      "config": {
+        "llm_model": "deepseek-chat",
+        "llm_temperature": 0.6,
+        "top_k": 1,
+        "chunk_size": 200,
+        "chunk_overlap": 80,
+        "max_tool_rounds": 12,
+        "embedding_model": "text-embedding-v4",
+        "embedding_dim": 1024,
+        "collection": "library_rag_collection",
+        "milvus_uri": "D:\\pycharm\\library_agent\\milvus_library.db"
+      },
+      "report_path": "evaluation\\ablation\\topk_1\\report.json",
+      "timestamp": "2026-11-18 11:17:41",
+      "retrieval": {
+        "recall": 0.8529411764705882,
+        "mrr": 0.8529411764705882,
+        "count": 34
+      },
+      "agent": {
+        "count": 42,
+        "answer_accuracy": 0.9047619047619048,
+        "tool_selection_accuracy": 1,
+        "tool_call_rate_when_expected": 1,
+        "false_tool_call_rate": 0,
+        "avg_tool_rounds": 0.8571428571428571,
+        "avg_llm_calls": 1.8571428571428572,
+        "agent_tokens": {
+          "input_tokens": 34324,
+          "output_tokens": 5500,
+          "total_tokens": 39824,
+          "cache_read_tokens": 17664
+        },
+        "judge_tokens": {
+          "input_tokens": 15679,
+          "output_tokens": 1541,
+          "total_tokens": 17220
+        }
+      },
+      "delta_vs_baseline": {
+        "retrieval.recall": -0.0882,
+        "retrieval.mrr": -0.0441,
+        "agent.answer_accuracy": -0.0476,
+        "agent.tool_selection_accuracy": 0.0,
+        "agent.avg_tool_rounds": 0.0476,
+        "agent.avg_llm_calls": 0.0476,
+        "agent.tokens_change_pct": -12.1
+      }
+    },
+    {
+      "variant": "topk_5",
+      "env": {
+        "TOP_K": "5"
+      },
+      "rebuild": false,
+      "config": {
+        "llm_model": "deepseek-chat",
+        "llm_temperature": 0.6,
+        "top_k": 5,
+        "chunk_size": 200,
+        "chunk_overlap": 80,
+        "max_tool_rounds": 12,
+        "embedding_model": "text-embedding-v4",
+        "embedding_dim": 1024,
+        "collection": "library_rag_collection",
+        "milvus_uri": "D:\\pycharm\\library_agent\\milvus_library.db"
+      },
+      "report_path": "evaluation\\ablation\\topk_5\\report.json",
+      "timestamp": "2026-11-18 11:20:40",
+      "retrieval": {
+        "recall": 0.9411764705882353,
+        "mrr": 0.8970588235294118,
+        "count": 34
+      },
+      "agent": {
+        "count": 42,
+        "answer_accuracy": 1,
+        "tool_selection_accuracy": 1,
+        "tool_call_rate_when_expected": 1,
+        "false_tool_call_rate": 0,
+        "avg_tool_rounds": 0.8095238095238095,
+        "avg_llm_calls": 1.8095238095238095,
+        "agent_tokens": {
+          "input_tokens": 46078,
+          "output_tokens": 5557,
+          "total_tokens": 51635,
+          "cache_read_tokens": 26880
+        },
+        "judge_tokens": {
+          "input_tokens": 15873,
+          "output_tokens": 1551,
+          "total_tokens": 17424
+        }
+      },
+      "delta_vs_baseline": {
+        "retrieval.recall": 0.0,
+        "retrieval.mrr": 0.0,
+        "agent.answer_accuracy": 0.0476,
+        "agent.tool_selection_accuracy": 0.0,
+        "agent.avg_tool_rounds": 0.0,
+        "agent.avg_llm_calls": 0.0,
+        "agent.tokens_change_pct": 14.0
+      }
+    },
+    {
+      "variant": "temp_0",
+      "env": {
+        "LLM_TEMPERATURE": "0"
+      },
+      "rebuild": false,
+      "config": {
+        "llm_model": "deepseek-chat",
+        "llm_temperature": 0.0,
+        "top_k": 3,
+        "chunk_size": 200,
+        "chunk_overlap": 80,
+        "max_tool_rounds": 12,
+        "embedding_model": "text-embedding-v4",
+        "embedding_dim": 1024,
+        "collection": "library_rag_collection",
+        "milvus_uri": "D:\\pycharm\\library_agent\\milvus_library.db"
+      },
+      "report_path": "evaluation\\ablation\\temp_0\\report.json",
+      "timestamp": "2026-11-18 11:24:08",
+      "retrieval": {
+        "recall": 0.9411764705882353,
+        "mrr": 0.8970588235294118,
+        "count": 34
+      },
+      "agent": {
+        "count": 42,
+        "answer_accuracy": 1,
+        "tool_selection_accuracy": 1,
+        "tool_call_rate_when_expected": 1,
+        "false_tool_call_rate": 0,
+        "avg_tool_rounds": 0.8095238095238095,
+        "avg_llm_calls": 1.8095238095238095,
+        "agent_tokens": {
+          "input_tokens": 39506,
+          "output_tokens": 5527,
+          "total_tokens": 45033,
+          "cache_read_tokens": 23168
+        },
+        "judge_tokens": {
+          "input_tokens": 15849,
+          "output_tokens": 1543,
+          "total_tokens": 17392
+        }
+      },
+      "delta_vs_baseline": {
+        "retrieval.recall": 0.0,
+        "retrieval.mrr": 0.0,
+        "agent.answer_accuracy": 0.0476,
+        "agent.tool_selection_accuracy": 0.0,
+        "agent.avg_tool_rounds": 0.0,
+        "agent.avg_llm_calls": 0.0,
+        "agent.tokens_change_pct": -0.6
+      }
+    },
+    {
+      "variant": "chunk_400",
+      "env": {
+        "CHUNK_SIZE": "400",
+        "CHUNK_OVERLAP": "80",
+        "MILVUS_DB_PATH": "./eval_ablation/chunk_400.db"
+      },
+      "rebuild": true,
+      "config": {
+        "llm_model": "deepseek-chat",
+        "llm_temperature": 0.6,
+        "top_k": 3,
+        "chunk_size": 400,
+        "chunk_overlap": 80,
+        "max_tool_rounds": 12,
+        "embedding_model": "text-embedding-v4",
+        "embedding_dim": 1024,
+        "collection": "library_rag_collection",
+        "milvus_uri": "D:\\pycharm\\library_agent\\eval_ablation\\chunk_400.db"
+      },
+      "report_path": "evaluation\\ablation\\chunk_400\\report.json",
+      "timestamp": "2026-11-18 11:27:28",
+      "retrieval": {
+        "recall": 0.9411764705882353,
+        "mrr": 0.9117647058823529,
+        "count": 34
+      },
+      "agent": {
+        "count": 42,
+        "answer_accuracy": 0.9761904761904762,
+        "tool_selection_accuracy": 1,
+        "tool_call_rate_when_expected": 1,
+        "false_tool_call_rate": 0,
+        "avg_tool_rounds": 0.8095238095238095,
+        "avg_llm_calls": 1.8095238095238095,
+        "agent_tokens": {
+          "input_tokens": 45793,
+          "output_tokens": 5730,
+          "total_tokens": 51523,
+          "cache_read_tokens": 18432
+        },
+        "judge_tokens": {
+          "input_tokens": 16025,
+          "output_tokens": 1575,
+          "total_tokens": 17600
+        }
+      },
+      "delta_vs_baseline": {
+        "retrieval.recall": 0.0,
+        "retrieval.mrr": 0.0147,
+        "agent.answer_accuracy": 0.0238,
+        "agent.tool_selection_accuracy": 0.0,
+        "agent.avg_tool_rounds": 0.0,
+        "agent.avg_llm_calls": 0.0,
+        "agent.tokens_change_pct": 13.8
+      }
+    },
+    {
+      "variant": "chunk_100",
+      "env": {
+        "CHUNK_SIZE": "100",
+        "CHUNK_OVERLAP": "40",
+        "MILVUS_DB_PATH": "./eval_ablation/chunk_100.db"
+      },
+      "rebuild": true,
+      "config": {
+        "llm_model": "deepseek-chat",
+        "llm_temperature": 0.6,
+        "top_k": 3,
+        "chunk_size": 100,
+        "chunk_overlap": 40,
+        "max_tool_rounds": 12,
+        "embedding_model": "text-embedding-v4",
+        "embedding_dim": 1024,
+        "collection": "library_rag_collection",
+        "milvus_uri": "D:\\pycharm\\library_agent\\eval_ablation\\chunk_100.db"
+      },
+      "report_path": "evaluation\\ablation\\chunk_100\\report.json",
+      "timestamp": "2026-11-18 11:30:47",
+      "retrieval": {
+        "recall": 0.8823529411764706,
+        "mrr": 0.7990196078431373,
+        "count": 34
+      },
+      "agent": {
+        "count": 42,
+        "answer_accuracy": 0.8571428571428571,
+        "tool_selection_accuracy": 1,
+        "tool_call_rate_when_expected": 1,
+        "false_tool_call_rate": 0,
+        "avg_tool_rounds": 0.8095238095238095,
+        "avg_llm_calls": 1.8095238095238095,
+        "agent_tokens": {
+          "input_tokens": 35366,
+          "output_tokens": 5606,
+          "total_tokens": 40972,
+          "cache_read_tokens": 18432
+        },
+        "judge_tokens": {
+          "input_tokens": 15906,
+          "output_tokens": 1580,
+          "total_tokens": 17486
+        }
+      },
+      "delta_vs_baseline": {
+        "retrieval.recall": -0.0588,
+        "retrieval.mrr": -0.098,
+        "agent.answer_accuracy": -0.0952,
+        "agent.tool_selection_accuracy": 0.0,
+        "agent.avg_tool_rounds": 0.0,
+        "agent.avg_llm_calls": 0.0,
+        "agent.tokens_change_pct": -9.5
+      }
+    }
+  ]
+}
