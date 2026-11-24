@@ -12,8 +12,8 @@
     "《数据库系统概论》": {
       "copy": "B0002",
       "status": "borrowed",
-      "borrow_date": "2026-10-01",
-      "due_date": "2026-11-10",
+      "borrow_date": "2026-09-13",
+      "due_date": "2026-11-12",
       "renewed": true,
       "returned": false,
       "fine_due": 0.0
@@ -21,7 +21,7 @@
     "《深度学习》": {
       "copy": "B0003",
       "status": "returned",
-      "borrow_date": "2026-10-05",
+      "borrow_date": "2026-10-12",
       "due_date": "2026-11-11",
       "renewed": false,
       "returned": true,
@@ -53,8 +53,8 @@
     "《机器学习》": {
       "copy": "B0006",
       "status": "reserved",
-      "reserved_at": "2026-11-22",
-      "pickup_deadline": "2026-11-25",
+      "reserved_at": "2026-11-23",
+      "pickup_deadline": "2026-11-26",
       "borrow_date": null,
       "due_date": null,
       "renewed": false,

@@ -36,6 +36,8 @@ library_agent/
 ├── middleware.py      # 输入校验 + 调用耗时日志
 ├── config.py          # 集中配置（读 .env）
 ├── tests/             # pytest（44 例）：状态机 / 设备幂等 / 借还规则 / 馆藏校验 / 多用户隔离 / 输入校验 / HTTP 冒烟
+├── scripts/
+│   └── reset_demo_data.py  # 按当天日期重建演示台账（演示借还前执行）
 ├── .github/workflows/ci.yml  # push 时跑 pytest（不调模型、不连向量库，无需配置密钥）
 ├── evaluation/
 │   ├── eval_questions.json  # 55 题：47 道知识/拒答 + 8 道“不该调工具”，含 L0-L5 难度标签
@@ -53,12 +55,12 @@ library_agent/
 
 ## 运行环境
 
-项目使用的解释器：`D:\Edge_Download\Miniconda\envs\langchain1.2`
+Python 3.12+（开发环境 3.13，CI 用 3.12，两个版本都跑通 44 例测试）。
 
-主要依赖版本见 `requirements.txt`，已在环境中安装好。换机器时执行：
+主要依赖版本见 `requirements.txt`，换机器时执行：
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # 含运行依赖 + pytest/httpx
 ```
 
 ## 配置
@@ -70,23 +72,23 @@ pip install -r requirements.txt
 | `DEEPSEEK_API_KEY`                  | DeepSeek 对话模型密钥（必填）                                                                    |
 | `DEEPSEEK_BASE_URL`                 | 默认 `https://api.deepseek.com`                                                          |
 | `EMBEDDING_API_KEY`                 | 向量化服务的密钥                                                                               |
-| `EMBEDDING_BASE_URL`                | 默认百炼 `https://dashscope.aliyuncs.com/compatible-mode/v1`                               |
-| `EMBEDDING_MODEL` / `EMBEDDING_DIM` | 默认 `text-embedding-v4` / `1024`，两者必须匹配                                                 |
-| `EMBEDDING_BATCH_SIZE`              | 单次请求的文本条数，百炼最多 10 条                                                                    |
+| `EMBEDDING_BASE_URL`                | `.env.example` 默认硅基流动 `https://api.siliconflow.cn/v1`，可切换百炼                         |
+| `EMBEDDING_MODEL` / `EMBEDDING_DIM` | `.env.example` 默认 `BAAI/bge-m3` / `1024`；v6 评测用百炼 `text-embedding-v4` / `1024`        |
+| `EMBEDDING_BATCH_SIZE`              | 单次请求的文本条数；百炼上限 10，硅基流动可更大                                                       |
 | `MILVUS_DB_PATH`                    | 默认 `./milvus_library.db`（Milvus Lite 本地文件）；用服务端时改设 `MILVUS_URI=http://localhost:19530` |
 | `TOP_K`                             | 每次检索返回的片段数，默认 3                                                                        |
 
-> **关于「DeepSeek 向量模型」**：DeepSeek 官方只提供对话模型（`deepseek-flash` /
-> `deepseek-v4-pro`），**没有 embedding 接口**，`https://api.deepseek.com/v1/embeddings`
-> 会返回 404。所以向量化必须另找服务：
+> **关于向量模型**：DeepSeek 只提供对话模型，**没有 embedding 接口**
+> （`https://api.deepseek.com/v1/embeddings` 会返回 404），所以向量化必须另找服务。
+> 仓库提供两套 1024 维方案，按 `.env.example` 里的注释切换：
 >
-> - 默认方案：阿里百炼 `text-embedding-v4`（1024 维），在百炼控制台申请 `DASHSCOPE_API_KEY`
->   填进 `.env`（新账号有免费额度，建这个库足够）；
-> - 备选：硅基流动 `BAAI/bge-m3`（1024 维），去 <https://cloud.siliconflow.cn> 注册后
->   把 `.env` 里注释掉的 5 行取消注释即可；
+> - 方案 A（`.env.example` 默认）：硅基流动 `BAAI/bge-m3`，去
+>   <https://cloud.siliconflow.cn> 注册后填 key；
+> - 方案 B（README 里 96.36% 那次评测实际使用的）：阿里百炼 `text-embedding-v4`，
+>   在百炼控制台申请 `DASHSCOPE_API_KEY`；
 > - 也可以用本地 Ollama 跑 bge-m3，不需要任何 key。
 >
-> 不管换哪个，`EMBEDDING_MODEL` 和 `EMBEDDING_DIM` 必须匹配，否则建库会报维度不一致。
+> 换方案时 `EMBEDDING_MODEL` 和 `EMBEDDING_DIM` 必须匹配，否则建库会报维度不一致。
 
 ## 知识库设计决策（不是刷分，是模拟真实文档）
 
@@ -180,6 +182,14 @@ v6 新增的 4 道 L4 聚合题（`books_ai_total` / `books_db_bigdata_total` /
 
 ## 使用步骤
 
+0. **重置演示数据**（可选，演示借还 / 写操作前执行一次）：
+
+   ```bash
+   python scripts/reset_demo_data.py
+   ```
+
+   所有日期按当天生成，保证「逾期 12 天」「取书期限还有 2 天」这类演示状态不会随时间失效。
+
 1. **建库**（首次运行或知识库更新后执行）：
 
    ```bash
@@ -253,11 +263,12 @@ cancelled       预借超期未取，自动作废
 `thread_id="cli-session-1"` 保持上下文；评测脚本给每题独立 `thread_id`，并在
 `__interrupt__` 时自动 `Command(resume="yes")`。
 
-可试这几条（当前日期 2026-11-22，学号 2023001）：
+先执行 `python scripts/reset_demo_data.py` 重置演示数据（日期按当天生成），再试这几条
+（学号 2023001）：
 
 ```
 我借了哪些书                    → 先要学号；认证后列出 3 本（含 1 本逾期 12 天、册号、状态）
-帮我续借《机器学习》            → 认证 + 确认后提示已续借过，到期日 2026-12-31
+帮我续借《机器学习》            → 认证 + 确认后提示已续借过，到期日以返回为准
 帮我借《哈利波特与魔法石》      → NOT_IN_COLLECTION，并列出 7 本现有馆藏
 帮我借《深度学习》              → ACCOUNT_FROZEN（有《数据库系统概论》逾期未还）
 我要还《数据库系统概论》        → PENDING_RETURN，给出册号 B0002，要求去还书机扫码
@@ -325,8 +336,7 @@ uvicorn api:app --port 8000        # 必须单 worker：MemorySaver 是进程内
 
 ## 评测与消融
 
-解释器同样是 `D:\Edge_Download\Miniconda\envs\langchain1.2\python.exe`。
-在项目根目录执行：
+解释器要求同上（Python 3.12+）。在项目根目录执行：
 
 ```bash
 # 全量评测：检索指标 + 回答准确率 + 工具选择准确率 + 轨迹/token + 多步重试指标
